@@ -11,11 +11,12 @@ queries = open(root+"ques.txt",'r').read()
 
 text = remove_contractions(text)
 queries = queries.split('\n')
-resolve_pronoun(text)
+text = resolve_pronoun(text)
+print(text)
 
 for query in queries:
     print("for query : "+query) 
     entity = get_entity(query)
     ranks = get_ranked(query,text)
-    # results = get_result(entity,ranks)
+    results = get_result(entity,ranks)
 

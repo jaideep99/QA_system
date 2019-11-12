@@ -1,6 +1,12 @@
 import re
 from pycorenlp import StanfordCoreNLP
+from nltk import pos_tag,word_tokenize
+from nltk.parse.stanford import StanfordDependencyParser
+from nltk.parse.corenlp import CoreNLPDependencyParser
 
+# parser = StanfordDependencyParser('C:/Users/jaide/OneDrive/Documents/VSCODE/QA_system/stanford-corenlp-python/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2.jar','C:/Users/jaide/OneDrive/Documents/VSCODE/QA_system/stanford-corenlp-python/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-models.jar')
+
+parser = CoreNLPDependencyParser('http://localhost:9000')
 nlp = StanfordCoreNLP('http://localhost:9000')
 
 
@@ -40,8 +46,9 @@ def resolve(corenlp_output):
                 corenlp_output['sentences'][target_sentence - 1]['tokens'][target_token]['word'] = antecedent['text']
 
 
-def print_resolved(corenlp_output):
+def get_resolved_text(corenlp_output):
     """ Print the "resolved" output """
+    output = ""
     possessives = ['hers', 'his', 'their', 'theirs']
     for sentence in corenlp_output['sentences']:
         for token in sentence['tokens']:
@@ -50,15 +57,68 @@ def print_resolved(corenlp_output):
             if token['lemma'] in possessives or token['pos'] == 'PRP$':
                 output_word += "'s"  # add the possessive morpheme
             output_word += token['after']
-            print(output_word, end='')
+            output += output_word+' '
+    return output
+
+def get_subject(text):
+    res, = parser.raw_parse(text)
+    res = list(res.triples())
+    subject = ""
+    for x in res:
+        for i in range(len(x)):
+            # print(x[i])
+            if x[i]=='nsubj':
+                subject = x[i+1][0]
+                return subject
+
+    return subject
 
 
+def resolve_collectives(text):
+    
+    texts = text.split('. ')
 
+    for i in range(len(texts)):
+        replace = ""
+        nouns = []
+        for pron in ['their','Their','them','Them','They','they']:
+            if pron in word_tokenize(texts[i]):
+                # print(texts[i])
+                stats = 0
+                flag = 0
+                print("At : "+str(i))
+                for prev in range(i-1,-1,-1):
+
+                    if(stats==2 or flag==1 ):
+                        break
+
+                    subject = get_subject(texts[prev])
+                    pos= pos_tag([subject])
+                    # print(pos)
+                    pos = pos[0][1]
+                    if(pos=='NNS' or pos=='NNPS'):
+                            replace = subject
+                            flag=1
+                            # print(subject)
+                            break
+
+                    if(pos=='NN' or pos=='NNP'):
+                            if subject not in nouns:
+                                nouns.append(subject)
+                                stats+=1
+                                # print(subject)
+                
+        if(replace==""):
+            replace = ' and '.join(nouns)
+        for pron in ['their','Their','them','Them','They','they']:
+            texts[i] = texts[i].replace(pron,replace)
+
+    text = '. '.join(texts) 
+    return text
+    
+    
 
 def resolve_pronoun(text):
-
-    # text = "Tom and Jane are good friends. They are cool. He knows a lot of things and so does she. His car is red, but " \
-    #    "hers is blue. It is older than hers. The big cat ate its dinner."
 
     output = nlp.annotate(text, properties= {'annotators':'dcoref','outputFormat':'json','ner.useSUTime':'false'})
 
@@ -66,4 +126,7 @@ def resolve_pronoun(text):
 
     print('Original:', text)
     print('Resolved: ', end='')
-    print_resolved(output)
+    text = get_resolved_text(output)
+    text = resolve_collectives(text)
+
+    return text

@@ -9,7 +9,7 @@ lemmatizer = WordNetLemmatizer()
 
 def make_sentences(passage_text):
     sentences = []
-    for x in passage_text.split('.'):
+    for x in passage_text.split('. '):
         if len(x)>0:
             x = x.translate(str.maketrans('', '', string.punctuation))
             sentences.append(x)
