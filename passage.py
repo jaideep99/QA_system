@@ -42,15 +42,19 @@ def jaccardi_score(mod):
     for x in mat:
 
         score = float(len(mat[x].intersection(query)))/len(mat[x].union(query))
-        print(str(x)+" : ")
-        print(mat[x].intersection(query))
+        # print(str(x)+" : ")
+        # print(mat[x].intersection(query))
         score = score*100
         mat[x] = score
 
+    print(mat)
+    for x in list(mat):
+        if(mat[x]==0.0):
+            mat.pop(x)
     order = sorted(mat.items(), key=lambda k: k[1])
     order = [x for x,y in order]
-    
-
+    order.reverse()
+    print(order)
     return order
 
 
@@ -62,6 +66,7 @@ def get_ranked(query,text):
     mod.append(query)
     
     ranks= jaccardi_score(mod)
+    return ranks,mod[:-1]
 
 
 

@@ -10,7 +10,7 @@ parser = CoreNLPDependencyParser('http://localhost:9000')
 nlp = StanfordCoreNLP('http://localhost:9000')
 
 
-entityMap = {'Who': ['PERSON'],'Whom':['PERSON'],'When':['DATE'],'Which':['LOCATION','DATE'],'Where':['LOCATION','ORGANIZATION'],'How much':['QUANTITY','DATE'],'How many':['QUANTITY','DATE'],'What':['QUANTITY','LOCATION','DATE','PERSON']}
+entityMap = {'Who': ['PERSON'],'Whom':['PERSON'],'When':['DATE'],'Which':['LOCATION','ORGANIZATION','DATE'],'Where':['LOCATION','ORGANIZATION'],'How much':['QUANTITY','DURATION','DATE'],'How many':['QUANTITY','DURATION','DATE'],'What':['QUANTITY','LOCATION','DATE','PERSON','DURATION']}
 
 def remove_contractions(text):
     text = re.sub('n\'t',' not',text)
@@ -32,7 +32,6 @@ def get_entity(query):
 
 
 def resolve(corenlp_output):
-    """ Transfer the word form of the antecedent to its associated pronominal anaphor(s) """
     for coref in corenlp_output['corefs']:
         mentions = corenlp_output['corefs'][coref]
         antecedent = mentions[0]  # the antecedent is the first mention in the coreference chain
@@ -68,6 +67,13 @@ def get_subject(text):
         for i in range(len(x)):
             # print(x[i])
             if x[i]=='nsubj':
+                subject = x[i+1][0]
+                return subject
+
+    for x in res:
+        for i in range(len(x)):
+            # print(x[i])
+            if x[i]=='nmod':
                 subject = x[i+1][0]
                 return subject
 
