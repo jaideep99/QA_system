@@ -47,14 +47,12 @@ def jaccardi_score(mod):
         score = score*100
         mat[x] = score
 
-    print(mat)
     for x in list(mat):
         if(mat[x]==0.0):
             mat.pop(x)
     order = sorted(mat.items(), key=lambda k: k[1])
     order = [x for x,y in order]
     order.reverse()
-    print(order)
     return order
 
 

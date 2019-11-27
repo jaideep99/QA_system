@@ -2,12 +2,14 @@ from passage import *
 from query import *
 import nltk
 import Algorithmia
-from nltk.tag import StanfordNERTagger
+from pycorenlp import StanfordCoreNLP
 from nltk import word_tokenize
-from utilities import get_subject
+from utilities import get_subject,get_subjects
 import webcolors
 
-# NER = StanfordNERTagger('http://localhost:9000')
+nlp = StanfordCoreNLP('http://localhost:9000')
+
+
 def get_colors(text):
     words = word_tokenize(text)
     colrs = []
@@ -15,6 +17,20 @@ def get_colors(text):
         if x.lower() in webcolors.css3_names_to_hex:
             colrs.append(x)
     return colrs
+
+def check_sent(text):
+    res = nlp.annotate(text,
+                   properties={
+                       'annotators': 'sentiment',
+                       'outputFormat': 'json',
+                       'timeout': 1000,
+                   })
+    for s in res["sentences"]:
+
+        if s["sentiment"]=='Positive' or s["sentiment"]=='Neutral':
+            return 1
+        else:
+            return -1
 
 def get_result(entity,ranks,sentences,query):
 
@@ -25,7 +41,6 @@ def get_result(entity,ranks,sentences,query):
     print("Possible Answers are : ")
     flag = 0
     query_sub = get_subject(query)
-    print("Query subject : ",query_sub)
     if "color" in query:
         for x in ranks:
             colors = get_colors(sentences[x])
@@ -35,12 +50,12 @@ def get_result(entity,ranks,sentences,query):
                 return
     
     for x in ranks:
-        # print("sentence subject : ",get_subject(sentences[x]).lower())
-        # if(query_sub.lower()!=get_subject(sentences[x]).lower()):
-        #     continue
         if(flag==1):
+            print()
+            print(sentences[ranks[0]])
+            print()
             break
-        # print(NER.tag(word_tokenize(sentences[x])))
+
         results = algo.pipe(sentences[x]).result
         prev = ""
         for ent in results[0]:
@@ -56,15 +71,44 @@ def get_result(entity,ranks,sentences,query):
                     print(name,end=" ")
                     prev = obj
                 flag = 1
+                
 
     if flag==0:
-        print("Sorry. No Answers Found!!")
-    print()
-    print()
+        # print("Sorry. No Answers Found!!")
+        # print("Next possible answers : ")
+        print(sentences[ranks[0]])
 
 
-    print("Required Entity : ")
-    t = [print(i) for i in entity]
+
+def get_aux_result(ranks,sentences,query):
+
+    sentence = sentences[ranks[0]]
+    
+    sen = check_sent(sentence)
+    que = check_sent(query)
+
+    sen_subs = get_subjects(sentence)
+    que_subs = get_subjects(query)
+
+    flag = 0
+    for x in que_subs:
+        if x not in sen_subs:
+            print(x)
+            flag=1
+            break
+
+    
+
+    if sen*que<0:
+        print("No!!")
+    else :
+        if flag==0:
+            print("Yes!!")
+        else:
+            print("No!!")
+
+
+
 
     
 

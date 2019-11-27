@@ -4,13 +4,14 @@ from nltk import pos_tag,word_tokenize
 from nltk.parse.stanford import StanfordDependencyParser
 from nltk.parse.corenlp import CoreNLPDependencyParser
 
-# parser = StanfordDependencyParser('C:/Users/jaide/OneDrive/Documents/VSCODE/QA_system/stanford-corenlp-python/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2.jar','C:/Users/jaide/OneDrive/Documents/VSCODE/QA_system/stanford-corenlp-python/stanford-corenlp-full-2018-10-05/stanford-corenlp-3.9.2-models.jar')
 
 parser = CoreNLPDependencyParser('http://localhost:9000')
 nlp = StanfordCoreNLP('http://localhost:9000')
 
 
 entityMap = {'Who': ['PERSON'],'Whom':['PERSON'],'When':['DATE'],'Which':['LOCATION','ORGANIZATION','DATE'],'Where':['LOCATION','ORGANIZATION'],'How much':['QUANTITY','DURATION','DATE'],'How many':['QUANTITY','DURATION','DATE'],'What':['QUANTITY','LOCATION','DATE','PERSON','DURATION']}
+
+aux_verbs = ['Can','Could','Is','Did','Do','Does','Will','Would','May','Have','Are','Am','Shall']
 
 def remove_contractions(text):
     text = re.sub('n\'t',' not',text)
@@ -79,6 +80,23 @@ def get_subject(text):
 
     return subject
 
+def get_subjects(text):
+    res, = parser.raw_parse(text)
+    res = list(res.triples())
+    subject = []
+    for x in res:
+        for i in range(len(x)):
+            # print(x[i])
+            if x[i]=='nsubj':
+                subject.append(x[i+1][0])
+
+    for x in res:
+        for i in range(len(x)):
+            if x[i]=='nmod':
+                subject.append(x[i+1][0])
+
+    return subject
+
 
 def resolve_collectives(text):
     
@@ -92,7 +110,6 @@ def resolve_collectives(text):
                 # print(texts[i])
                 stats = 0
                 flag = 0
-                print("At : "+str(i))
                 for prev in range(i-1,-1,-1):
 
                     if(stats==2 or flag==1 ):
@@ -105,14 +122,12 @@ def resolve_collectives(text):
                     if(pos=='NNS' or pos=='NNPS'):
                             replace = subject
                             flag=1
-                            # print(subject)
                             break
 
                     if(pos=='NN' or pos=='NNP'):
                             if subject not in nouns:
                                 nouns.append(subject)
                                 stats+=1
-                                # print(subject)
                 
         if(replace==""):
             replace = ' and '.join(nouns)
@@ -130,8 +145,6 @@ def resolve_pronoun(text):
 
     resolve(output)
 
-    print('Original:', text)
-    print('Resolved: ', end='')
     text = get_resolved_text(output)
     text = resolve_collectives(text)
 
