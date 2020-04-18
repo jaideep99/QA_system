@@ -26,18 +26,19 @@ def check_sent(text):
                        'timeout': 1000,
                    })
     for s in res["sentences"]:
-
         if s["sentiment"]=='Positive' or s["sentiment"]=='Neutral':
             return 1
         else:
             return -1
 
-def get_result(entity,ranks,sentences,query):
+client = Algorithmia.client('simR9dr2dF79zdimoXRNAWioLhp1')
+algo = client.algo('StanfordNLP/NamedEntityRecognition/0.2.0')
+algo.set_options(timeout=300) # optional
+# results = algo.pipe("He served 2 terms in office").result
+# print(results)
 
-    client = Algorithmia.client('simR9dr2dF79zdimoXRNAWioLhp1')
-    algo = client.algo('StanfordNLP/NamedEntityRecognition/0.2.0')
-    algo.set_options(timeout=300) # optional
-    
+def get_result(entity,ranks,sentences,query):
+ 
     print("Possible Answers are : ")
     flag = 0
     query_sub = get_subject(query)
@@ -76,7 +77,7 @@ def get_result(entity,ranks,sentences,query):
     if flag==0:
         # print("Sorry. No Answers Found!!")
         # print("Next possible answers : ")
-        print(sentences[ranks[0]])
+         print(sentences[ranks[0]])
 
 
 
@@ -93,7 +94,6 @@ def get_aux_result(ranks,sentences,query):
     flag = 0
     for x in que_subs:
         if x not in sen_subs:
-            print(x)
             flag=1
             break
 

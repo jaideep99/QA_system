@@ -6,8 +6,8 @@ from nltk import word_tokenize
 from utilities import aux_verbs
 
 root = "C:\\Users\\jaide\\OneDrive\\Documents\\VSCODE\\QA_system\\"
-text = open(root+"pass3.txt",'r').read()
-queries = open(root+"ques3.txt",'r').read()
+text = open("passages\\pass1.txt",'r').read()
+queries = open("questions\\ques1.txt",'r').read()
 
 
 text = remove_contractions(text)

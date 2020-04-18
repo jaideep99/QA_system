@@ -42,8 +42,6 @@ def jaccardi_score(mod):
     for x in mat:
 
         score = float(len(mat[x].intersection(query)))/len(mat[x].union(query))
-        # print(str(x)+" : ")
-        # print(mat[x].intersection(query))
         score = score*100
         mat[x] = score
 

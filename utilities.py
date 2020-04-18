@@ -8,8 +8,10 @@ from nltk.parse.corenlp import CoreNLPDependencyParser
 parser = CoreNLPDependencyParser('http://localhost:9000')
 nlp = StanfordCoreNLP('http://localhost:9000')
 
+# res, = parser.raw_parse("Tom is 20 years old")
+# print(res)
 
-entityMap = {'Who': ['PERSON'],'Whom':['PERSON'],'When':['DATE'],'Which':['LOCATION','ORGANIZATION','DATE'],'Where':['LOCATION','ORGANIZATION'],'How much':['QUANTITY','DURATION','DATE'],'How many':['QUANTITY','DURATION','DATE'],'What':['QUANTITY','LOCATION','DATE','PERSON','DURATION']}
+entityMap = {'Who': ['PERSON'],'Whom':['PERSON'],'When':['DATE','TIME'],'Which':['LOCATION','ORGANIZATION','DATE'],'Where':['LOCATION','ORGANIZATION'],'How much':['QUANTITY','DURATION','DATE','NUMBER','MONEY'],'How many':['QUANTITY','DURATION','DATE','NUMBER','MONEY'],'What':['QUANTITY','LOCATION','DATE','PERSON','DURATION','NUMBER','MONEY','TIME']}
 
 aux_verbs = ['Can','Could','Is','Did','Do','Does','Will','Would','May','Have','Are','Am','Shall']
 
@@ -62,6 +64,7 @@ def get_resolved_text(corenlp_output):
 
 def get_subject(text):
     res, = parser.raw_parse(text)
+
     res = list(res.triples())
     subject = ""
     for x in res:
@@ -142,9 +145,7 @@ def resolve_collectives(text):
 def resolve_pronoun(text):
 
     output = nlp.annotate(text, properties= {'annotators':'dcoref','outputFormat':'json','ner.useSUTime':'false'})
-
     resolve(output)
-
     text = get_resolved_text(output)
     text = resolve_collectives(text)
 
